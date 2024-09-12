@@ -1979,6 +1979,10 @@ impl crate::Adapter for super::Adapter {
             .queue_create_infos(&family_infos)
             .enabled_extension_names(&str_pointers);
         let info = enabled_phd_features.add_to_device_create(pre_info);
+
+        let mut present_barrier =
+            ash::vk::PhysicalDevicePresentBarrierFeaturesNV::default().present_barrier(true);
+        let info = info.push_next(&mut present_barrier);
         let raw_device = {
             profiling::scope!("vkCreateDevice");
             unsafe { self.instance.raw.create_device(self.raw, &info, None)? }
@@ -2198,6 +2202,26 @@ impl crate::Adapter for super::Adapter {
                 }
             }
         };
+
+        let info = ash::vk::PhysicalDeviceSurfaceInfo2KHR::default().surface(surface.raw);
+        let mut present_barrier_capabilities =
+            ash::vk::SurfaceCapabilitiesPresentBarrierNV::default();
+        let mut capabilities = ash::vk::SurfaceCapabilities2KHR::default()
+            .push_next(&mut present_barrier_capabilities);
+
+        match unsafe {
+            surface.functor2.get_physical_device_surface_capabilities2(
+                self.raw,
+                &info,
+                &mut capabilities,
+            )
+        } {
+            Ok(_) => log::debug!(
+                "Got present barrier capabilities: {}",
+                present_barrier_capabilities.present_barrier_supported
+            ),
+            Err(e) => log::error!("get_physical_device_surface_capabilities2: {}", e),
+        }
 
         let formats = raw_surface_formats
             .into_iter()

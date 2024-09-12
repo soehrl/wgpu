@@ -533,9 +533,12 @@ impl super::Instance {
 
     fn create_surface_from_vk_surface_khr(&self, surface: vk::SurfaceKHR) -> super::Surface {
         let functor = khr::surface::Instance::new(&self.shared.entry, &self.shared.raw);
+        let functor2 = khr::get_surface_capabilities2::Instance::new(&self.shared.entry, &self.shared.raw);
+
         super::Surface {
             raw: surface,
             functor,
+            functor2,
             instance: Arc::clone(&self.shared),
             swapchain: RwLock::new(None),
         }

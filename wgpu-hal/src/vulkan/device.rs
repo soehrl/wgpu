@@ -566,7 +566,7 @@ impl super::Device {
             wgt_view_formats.push(config.format);
         }
 
-        let mut info = vk::SwapchainCreateInfoKHR::default()
+        let info = vk::SwapchainCreateInfoKHR::default()
             .flags(raw_flags)
             .surface(surface.raw)
             .min_image_count(config.maximum_frame_latency + 1) // TODO: https://github.com/gfx-rs/wgpu/issues/2869
@@ -584,6 +584,10 @@ impl super::Device {
             .present_mode(conv::map_present_mode(config.present_mode))
             .clipped(true)
             .old_swapchain(old_swapchain);
+
+        let mut present_barrier_create_info =
+            vk::SwapchainPresentBarrierCreateInfoNV::default().present_barrier_enable(true);
+        let mut info = info.push_next(&mut present_barrier_create_info);
 
         let mut format_list_info = vk::ImageFormatListCreateInfo::default();
         if !raw_view_formats.is_empty() {

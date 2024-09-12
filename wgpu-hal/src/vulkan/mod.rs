@@ -347,6 +347,7 @@ impl Swapchain {
 pub struct Surface {
     raw: vk::SurfaceKHR,
     functor: khr::surface::Instance,
+    functor2: khr::get_surface_capabilities2::Instance,
     instance: Arc<InstanceShared>,
     swapchain: RwLock<Option<Swapchain>>,
 }
